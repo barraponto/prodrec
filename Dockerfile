@@ -1,9 +1,5 @@
 # Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
-
-# Setup a non-root user
-RUN groupadd --system --gid 999 nonroot \
-    && useradd --system --gid 999 --uid 999 --create-home nonroot
+FROM ghcr.io/astral-sh/uv:python3.13-trixie-slim AS builder
 
 # Install the project into `/app`
 WORKDIR /app
@@ -17,6 +13,9 @@ ENV UV_LINK_MODE=copy
 # Ensure installed tools can be executed out of the box
 ENV UV_TOOL_BIN_DIR=/usr/local/bin
 
+# Bring build libs
+RUN apt-get update && apt-get install -y build-essential
+
 # Install the project's dependencies using the lockfile and settings
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
@@ -29,13 +28,24 @@ COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
+FROM python:3.13-slim-trixie
+
+# Setup a non-root user
+RUN groupadd --system --gid 999 nonroot \
+    && useradd --system --gid 999 --uid 999 --create-home nonroot
+
+# Install the project into `/app`
+WORKDIR /app
+
+COPY --chown=nonroot:nonroot --from=builder /app /app
+
+# Use the non-root user to run our application
+USER nonroot
+
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
-# Use the non-root user to run our application
-USER nonroot
-
-CMD ['flask', '--app', 'app.py', 'run', '--host', '0.0.0.0', '--port', '5000']
+CMD ["flask", "--app", "app.py", "run", "--host", "0.0.0.0", "--port", "5000"]
