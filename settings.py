@@ -14,4 +14,5 @@ class Settings(BaseSettings):
 
     astradb_api_endpoint: str = Field(default="")
     astradb_api_key: str = Field(default="")
+    groq_api_key: str = Field(default="")
     huggingface_api_key: str = Field(default="")

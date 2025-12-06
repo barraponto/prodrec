@@ -26,7 +26,7 @@ major_version_zero = true
 extend-select = ["I"]
 
 [dependency-groups]
-dev = [
-    "ipykernel>=7.1.0",
-    "ruff>=0.14.8",
-]
+dev = ["ipykernel>=7.1.0", "ruff>=0.14.8"]
+
+[tool.uv]
+constraint-dependencies = ["langgraph-prebuilt==1.0.4"]
