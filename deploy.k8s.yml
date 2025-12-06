@@ -77,9 +77,9 @@ spec:
     app.kubernetes.io/name: prodrec
   ports:
     - protocol: TCP
-      port: 8001
+      port: 8000
       targetPort: 5000
-      nodePort: 32000
+      nodePort: 32001
       name: http
 ---
 apiVersion: networking.k8s.io/v1
@@ -100,4 +100,4 @@ spec:
           service:
             name: prodrec-service
             port:
-              number: 8001
+              number: 8000
