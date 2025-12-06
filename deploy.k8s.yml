@@ -77,7 +77,7 @@ spec:
     app.kubernetes.io/name: prodrec
   ports:
     - protocol: TCP
-      port: 8000
+      port: 5000
       targetPort: 5000
       nodePort: 32001
       name: http
@@ -100,4 +100,4 @@ spec:
           service:
             name: prodrec-service
             port:
-              number: 8000
+              number: 5000
