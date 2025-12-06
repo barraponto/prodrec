@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: prodrec-volume
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadOnlyMany
+  hostPath:
+    path: "/home/barraponto/data/prodrec"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prodrec-volumeclaim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prodrec-deployment
+  labels:
+    app.kubernetes.io/name: prodrec
+    app.kubernetes.io/version: "0.1.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prodrec
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prodrec
+        app.kubernetes.io/version: "0.1.0"
+    spec:
+      volumes:
+      - name: prodrec-storage
+        persistentVolumeClaim:
+          claimName: prodrec-volumeclaim
+      # Security context to enforce non-root user (matches Dockerfile)
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+      containers:
+      - name: prodrec
+        image: docker.io/library/prodrec:latest
+        imagePullPolicy: Never
+        volumeMounts:
+        - name: prodrec-storage
+          mountPath: /app/data
+        ports:
+          - containerPort: 8501
+            name: streamlit-app
+            protocol: TCP
+        envFrom:
+          - secretRef:
+              name: prodrec-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prodrec-service
+  labels:
+    app.kubernetes.io/name: prodrec
+spec:
+  type: NodePort  # Explicitly set - use LoadBalancer or NodePort for external access
+  selector:
+    app.kubernetes.io/name: prodrec
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8501
+      nodePort: 32000
+      name: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prodrec-ingress
+  labels:
+    app.kubernetes.io/name: prodrec
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: prodrec.ludologico.com.br
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prodrec-service
+            port:
+              number: 8000
