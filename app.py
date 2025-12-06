@@ -2,6 +2,8 @@ import os
 import uuid
 
 from flask import Flask, render_template, request, session
+from prometheus_client import Counter, make_wsgi_app
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 from chains.ingest import IngestChain
 from chains.rag import RAGChain
@@ -9,6 +11,9 @@ from settings import Settings
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
+app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {"/metrics": make_wsgi_app()})
+
+LLM_CALLS = Counter("llm_calls", "Number of LLM calls")
 
 settings = Settings()
 ingest = IngestChain(settings)
@@ -22,6 +27,7 @@ def index():
 
     if request.method == "POST":
         question = request.form["question"]
+        LLM_CALLS.inc()
         response = rag.agent.invoke(
             {"messages": [question]},
             config={"configurable": {"thread_id": session.get("thread_id")}},
