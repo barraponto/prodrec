@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "flask>=3.1.2",
     "huggingface-hub>=0.36.0",
     "langchain>=1.1.2",
     "langchain-astradb>=1.0.0",

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Product Recommendation Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container py-4">
+        <h1 class="mb-3 text-center">Headphone Recommendation Assistant</h1>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="userQuery" class="form-label">Ask about products</label>
+                <input type="text" class="form-control" id="question" name="question"
+                    placeholder="E.g. What are brands with 5 stars reviews in their earphones?">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Submit</button>
+        </form>
+        {% if message %}
+        <div class="mt-4">
+            {{ message }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>
