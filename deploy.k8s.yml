@@ -58,7 +58,7 @@ spec:
         - name: prodrec-storage
           mountPath: /app/data
         ports:
-          - containerPort: 8501
+          - containerPort: 5000
             name: streamlit-app
             protocol: TCP
         envFrom:
@@ -77,8 +77,8 @@ spec:
     app.kubernetes.io/name: prodrec
   ports:
     - protocol: TCP
-      port: 8000
-      targetPort: 8501
+      port: 8001
+      targetPort: 5000
       nodePort: 32000
       name: http
 ---
@@ -100,4 +100,4 @@ spec:
           service:
             name: prodrec-service
             port:
-              number: 8000
+              number: 8001
