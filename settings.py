@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     data_path: Path = Field(default=Path("./data/flipkart_product_review.csv"))
     embeddings_model: str = Field(default="BAAI/bge-base-en-v1.5")
+    rag_model: str = Field(default="groq:llama-3.1-8b-instant")
     vectorstore_collection: str = Field(default="productrec")
 
     astradb_api_endpoint: str = Field(default="")
