@@ -9,7 +9,7 @@ spec:
   accessModes:
     - ReadOnlyMany
   hostPath:
-    path: "/home/barraponto/data/prodrec"
+    path: "/mnt/data/prodrec"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -17,6 +17,7 @@ metadata:
   name: prodrec-volumeclaim
 spec:
   storageClassName: manual
+  volumeName: prodrec-volume
   accessModes:
     - ReadOnlyMany
   resources:
@@ -42,28 +43,28 @@ spec:
         app.kubernetes.io/version: "0.1.0"
     spec:
       volumes:
-      - name: prodrec-storage
-        persistentVolumeClaim:
-          claimName: prodrec-volumeclaim
+        - name: prodrec-storage
+          persistentVolumeClaim:
+            claimName: prodrec-volumeclaim
       # Security context to enforce non-root user (matches Dockerfile)
       securityContext:
         runAsNonRoot: true
         runAsUser: 999
         fsGroup: 999
       containers:
-      - name: prodrec
-        image: docker.io/library/prodrec:latest
-        imagePullPolicy: Never
-        volumeMounts:
-        - name: prodrec-storage
-          mountPath: /app/data
-        ports:
-          - containerPort: 5000
-            name: streamlit-app
-            protocol: TCP
-        envFrom:
-          - secretRef:
-              name: prodrec-secrets
+        - name: prodrec
+          image: docker.io/library/prodrec:latest
+          imagePullPolicy: Never
+          volumeMounts:
+            - name: prodrec-storage
+              mountPath: /app/data
+          ports:
+            - containerPort: 5000
+              name: streamlit-app
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: prodrec-secrets
 ---
 apiVersion: v1
 kind: Service
@@ -72,7 +73,7 @@ metadata:
   labels:
     app.kubernetes.io/name: prodrec
 spec:
-  type: NodePort  # Explicitly set - use LoadBalancer or NodePort for external access
+  type: NodePort # Explicitly set - use LoadBalancer or NodePort for external access
   selector:
     app.kubernetes.io/name: prodrec
   ports:
@@ -91,13 +92,13 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: prodrec.ludologico.com.br
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: prodrec-service
-            port:
-              number: 5000
+    - host: prodrec.ludologico.com.br
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prodrec-service
+                port:
+                  number: 5000
